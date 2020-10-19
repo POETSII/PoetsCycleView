@@ -29,7 +29,7 @@ public class PoetsCycleView extends UIContainer {
 	public static boolean playing = false;
 	
 	public static final Pattern gridFilenamePattern = Pattern.compile("([AS])([HW])_grid2d(\\d)s(\\d+)\\.txt");
-	public static String filenameInfo = null;
+	public static String filenameInfo = "Double-click a file in the list to load timeline data";
 	public static boolean alignLast = false;
 	
 	private static PoetsCycleView ui;
@@ -132,7 +132,8 @@ public class PoetsCycleView extends UIContainer {
 		playButton = new UIButton(controlPane, "Play") {
 			@Override
 			public void onAction() {
-				playing = !playing;
+				if(current!=null)
+					playing = !playing;
 			}
 			@Override
 			public void paint(GraphAssist g) {
