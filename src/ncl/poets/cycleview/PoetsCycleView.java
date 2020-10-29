@@ -1,11 +1,7 @@
 package ncl.poets.cycleview;
 
 import java.awt.Color;
-import java.io.File;
-import java.io.FilenameFilter;
 import java.util.Arrays;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.SwingUtilities;
 
@@ -19,8 +15,8 @@ import com.xrbpowered.zoomui.swing.SwingWindowFactory;
 
 public class PoetsCycleView extends UIContainer {
 
-	public static final String rootPath = "out_res";
-	
+	public static final GridFileInfoParser files = new GridFileInfoParser("out_res");
+
 	public static Timeline timeline = null;
 	public static PoetsState current = null;
 	private static PoetsStateView.TimelineBar timelineBar;
@@ -28,7 +24,6 @@ public class PoetsCycleView extends UIContainer {
 	public static final FrameControl frameControl = new FrameControl();
 	public static boolean playing = false;
 	
-	public static final Pattern gridFilenamePattern = Pattern.compile("([AS])([HW])_grid2d(\\d)s(\\d+)\\.txt");
 	public static String filenameInfo = "Double-click a file in the list to load timeline data";
 	public static boolean alignLast = false;
 	
@@ -160,20 +155,12 @@ public class PoetsCycleView extends UIContainer {
 		timelineBar.setSize(controlPane.getWidth(), timelineBar.getHeight());
 		timelineBar.setLocation(0, 24);
 
-		File[] files = new File(rootPath).listFiles(new FilenameFilter() {
-			@Override
-			public boolean accept(File dir, String name) {
-				return gridFilenamePattern.matcher(name).matches();
-			}
-		});
-		String[] fileNames = new String[files.length];
-		for(int i=0; i<files.length; i++)
-			fileNames[i] = files[i].getName();
+		String[] fileNames = files.listFiles();
 		Arrays.sort(fileNames);
 		outputList = new UIListBox(this, fileNames) {
 			@Override
 			public void onClickSelected() {
-				loadTimeline(rootPath+"/"+(String)(getSelectedItem().object));
+				loadTimeline(files.withPath((String)(getSelectedItem().object)));
 			}
 		};
 		
@@ -224,29 +211,9 @@ public class PoetsCycleView extends UIContainer {
 				if(timeline!=null) {
 					current = new PoetsState(timeline.nodeCount);
 					current.reset(timeline);
-					
-					Matcher m = gridFilenamePattern.matcher(new File(path).getName());
-					if(m.matches()) {
-						StringBuilder sb = new StringBuilder();
-						if(m.group(1).equals("S"))
-							sb.append("Sync ");
-						else if(m.group(1).equals("A"))
-							sb.append("Aync ");
-						if(m.group(2).equals("H"))
-							sb.append("Unweighted ");
-						else if(m.group(2).equals("W"))
-							sb.append("Weighted ");
-						sb.append(m.group(3));
-						sb.append("-connected ");
-						sb.append(m.group(4));
-						sb.append("x");
-						sb.append(m.group(4));
-						sb.append(" grid / ");
-						sb.append(Timeline.alignLastLabel(timeline.alignLast));
-						filenameInfo = sb.toString();
-					}
-					else
-						filenameInfo = null;
+					filenameInfo = files.getInfoString(path);
+					if(filenameInfo!=null)
+						filenameInfo += " / "+Timeline.alignLastLabel(alignLast);
 				}
 				else {
 					current = null;

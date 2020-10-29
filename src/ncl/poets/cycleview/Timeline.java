@@ -47,6 +47,8 @@ public class Timeline {
 		
 		for(int i=0; i<d.nodeCount; i++) {
 			TimelineData.Entry e = d.entries[i];
+			if(e.firstUpdate==0 || e.lastUpdate==0)
+				continue;
 			long offs = alignLast ? (d.lastCycles-e.finish) : 0;
 			t.putEvent(offs+e.start, e.node, NodeState.start);
 			t.putEvent(offs+e.firstUpdate, e.node, NodeState.firstUpdate);
